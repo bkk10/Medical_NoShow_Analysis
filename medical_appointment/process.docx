@@ -1,0 +1,177 @@
+Steps for mastering exploratory data analysis
+
+Step1: Understand the problem and the data
+
+What is the commercial enterprise goal or research question you are trying to address?
+What are the variables inside the information, and what do they mean?
+What are the data sorts (numerical, categorical, textual content, etc.) ?
+
+Step 2: Import and Inspect the Data
+Reasoning: Quickly assess size, data types, and obvious issues. Check for memory constraints on moderately large datasets.
+Checks:
+
+Shape (rows, columns)
+Data types (info() or dtypes)
+First/last few rows (head(), tail(), sample())
+Missing values overview
+
+Illustrative snippets:
+Pythonimport pandas as pd
+df = pd.read_csv('customer_data.csv', parse_dates=['signup_date', 'last_interaction_date'])
+print(df.shape)                    # (500000, 25)
+print(df.dtypes)
+print(df.isnull().sum().sort_values(ascending=False))
+df.sample(10)
+
+Step 3. Data Cleaning and Type Conversion
+Reasoning: Fix obvious errors early so downstream analysis is reliable. Look for inconsistent encodings, wrong data types, and invalid values.
+Actions:
+
+Convert types (categorical → category, dates → datetime, binary → bool/int)
+Handle obvious missing value placeholders
+Strip whitespace, standardize categories
+
+Example:
+Pythondf['churn'] = df['churn'].map({'Yes': 1, 'No': 0}).astype('int8')
+df['total_charges'] = pd.to_numeric(df['total_charges'], errors='coerce')
+df['contract_type'] = df['contract_type'].astype('category')
+Pattern to watch: High missing rate in total_charges for new customers (makes sense business-wise).
+
+Step 4. Univariate Analysis – Understand Distributions of Individual Variables
+Reasoning: Understand central tendency, spread, skewness, outliers, and class imbalance for each feature. This reveals data quality issues and business realities.
+Numerical columns:
+
+Summary statistics: mean, median, std, min, max, quantiles
+Look for: skewness, multimodality, impossible values (e.g., negative charges, tenure > customer age)
+
+Categorical columns:
+
+Frequency counts, proportions
+Cardinality (number of unique values)
+
+Temporal columns:
+
+Date range, trends over time, seasonality
+
+Illustrative visualizations & code:
+Python# Numerical
+print(df[['tenure_months', 'monthly_charges']].describe())
+df['monthly_charges'].hist(bins=50)
+# or use seaborn: sns.boxplot(x='churn', y='monthly_charges', data=df)
+
+# Categorical
+df['contract_type'].value_counts(normalize=True)
+sns.countplot(x='contract_type', hue='churn', data=df)
+
+# Target imbalance
+print(df['churn'].mean())   # e.g., 0.186 → 18.6% churn rate
+Business insights: Month-to-month contracts have much higher churn (45%) vs. 2-year contracts (8%). Monthly charges show right skew—power users exist.
+
+Step 5. Bivariate & Multivariate Analysis – Relationships and Interactions
+Reasoning: Identify which features correlate with the target and with each other. Look for interactions, confounding, and potential multicollinearity.
+Key questions:
+
+Which features differ strongly between churners and non-churners?
+Are there strong correlations that could cause issues in linear models?
+Do certain customer segments churn more?
+
+Techniques:
+
+1. Correlation matrix (bivariate for numeric pairs)
+Shows how every pair of numeric variables moves together.
+
+Pearson = linear relationship.
+Example: tenure and total_charges usually have high positive correlation (longer tenure → more total charges).
+
+Spearman = rank‑based (good for non‑linear but monotonic relationships).
+
+What to look for:
+
+Variables that correlate strongly with the target (churn) → possible drivers.
+
+Predictors that correlate strongly with each other (>0.7 or <‑0.7) → multicollinearity (can break linear models).
+
+2. Group‑by aggregations (pivot tables) – bivariate/multivariate
+df.groupby(['contract_type', 'payment_method'])['churn'].mean()
+That gives a multivariate view: churn rate across two categorical variables at once.
+
+Example output:
+
+text
+contract_type      payment_method    churn_rate
+Month‑to‑month     Electronic check      0.62
+Month‑to‑month     Credit card           0.35
+One year           Electronic check      0.21
+Two year           Credit card           0.05
+Insight: The combination Month‑to‑month + Electronic check is especially bad.
+
+3. Stratified visualizations
+Instead of one bar chart for all customers, you split the data by a third variable to see if the relationship changes.
+
+Example: Scatter plot of monthly_charges vs tenure, but color points by churn (blue = no churn, red = churn). Then you can see: red points are concentrated in the top‑left (high monthly, short tenure). That’s multivariate (three variables on one plot: tenure, monthly charges, churn).
+
+4. Pairplots / scatter plots for key pairs
+A grid of scatter plots for the most important numeric variables, often colored by the target.
+
+Instantly shows outliers, clusters, non‑linear patterns, and interactions.
+
+Step 6. Handle Missing Values and Outliers
+Reasoning: Understand why data is missing (MCAR, MAR, MNAR). Missingness can itself be predictive (e.g., missing payment_method often signals churn).
+Approach:
+
+Visualize missingness patterns (missingno library)
+Decide: impute, flag, or drop
+For outliers: use IQR, z-score, or domain-based rules (e.g., cap tenure at reasonable max)
+
+Example:
+
+Create missing indicator features: total_charges_missing
+Impute median for numerical, mode for categorical, or use advanced methods (KNN, iterative) if needed.
+
+Step 7. Feature Engineering Ideas & Temporal Analysis
+Reasoning: During EDA you generate hypotheses for new features.
+Ideas:
+
+tenure_days from dates
+avg_monthly_charges = total_charges / tenure_months
+days_since_last_interaction
+Cohort analysis: churn rate by signup month
+Rolling statistics or lag features for time-series aspects
+
+Temporal checks:
+Pythondf['signup_month'] = df['signup_date'].dt.to_period('M')
+cohort = df.groupby('signup_month')['churn'].mean()
+Pattern: Churn spiked after a major price increase in Q3 2025.
+
+Step 8. Segmentation and Advanced Pattern Discovery
+Reasoning: Go beyond averages—find customer segments with dramatically different behavior.
+Methods:
+
+RFM-like analysis (if applicable)
+Clustering (KMeans on scaled features) or decision tree-based segmentation
+Cross-tabulations for categorical interactions
+
+Step 9: Data Quality & Integrity Checks
+Final sanity checks:
+
+Duplicate rows
+Logical consistency (e.g., total_charges ≈ monthly_charges × tenure_months)
+Distribution shifts (if you have train/test split or multiple time periods)
+Target leakage (features that shouldn't be available at prediction time)
+
+EDA Checklist for Junior Data Analysts
+
+ Business context understood and documented
+ Data loaded, shape and dtypes inspected
+ Data types corrected and basic cleaning done
+ Univariate analysis completed (stats + plots for all columns)
+ Target variable deeply analyzed (distribution, imbalance)
+ Bivariate analysis with target and key predictors
+ Missing values explored (patterns + mechanisms)
+ Outliers and invalid values investigated
+ Correlations and multicollinearity checked
+ Temporal patterns and cohorts analyzed
+ Feature engineering hypotheses generated
+ Data quality & consistency checks passed
+ Insights summarized and communicated to stakeholders
+ Reproducibility ensured (seed, version control, documented decisions)
