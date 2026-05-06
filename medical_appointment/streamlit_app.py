@@ -2,17 +2,21 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
+import os
 from PIL import Image
 
 # ---------- LOAD MODEL AND PREPROCESSING OBJECTS ----------
-@st.cache_resource
-def load_artifacts():
-    model = joblib.load('appointment_model.pkl')
-    scaler = joblib.load('scaler.pkl')
-    feature_cols = joblib.load('feature_columns.pkl')
-    return model, scaler, feature_cols
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-model, scaler, feature_cols = load_artifacts()
+# Then in load_artifacts():
+model_path = os.path.join(script_dir, 'appointment_model.pkl')
+scaler_path = os.path.join(script_dir, 'scaler.pkl')
+features_path = os.path.join(script_dir, 'feature_columns.pkl')
+
+model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
+feature_cols = joblib.load(features_path)
+
 
 # ---------- PREPROCESSING FUNCTION (same as training) ----------
 def preprocess_new_data(df):
