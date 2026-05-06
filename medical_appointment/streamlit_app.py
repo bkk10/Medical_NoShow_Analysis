@@ -13,9 +13,29 @@ model_path = os.path.join(script_dir, 'appointment_model.pkl')
 scaler_path = os.path.join(script_dir, 'scaler.pkl')
 features_path = os.path.join(script_dir, 'feature_columns.pkl')
 
-model = joblib.load(model_path)
-scaler = joblib.load(scaler_path)
-feature_cols = joblib.load(features_path)
+try:
+    model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+    feature_cols = joblib.load(features_path)
+except ModuleNotFoundError as e:
+    missing = str(e)
+    st.error(f"ModuleNotFoundError while loading model artifacts: {missing}")
+    st.warning("Attempting cloudpickle fallback (may still fail if package code is missing)...")
+    try:
+        import cloudpickle
+        with open(model_path, 'rb') as f:
+            model = cloudpickle.load(f)
+        scaler = joblib.load(scaler_path)
+        feature_cols = joblib.load(features_path)
+        st.success("Loaded model via cloudpickle fallback.")
+    except Exception as e2:
+        st.error(f"Fallback failed: {e2}")
+        st.error("The saved model requires a package that's not installed in this environment.\n\n" \
+                 "Add the missing package to `requirements.txt` (e.g., `xgboost`) or include the module's code in the app bundle, then redeploy.")
+        st.stop()
+except Exception as e:
+    st.error(f"Error loading model artifacts: {e}")
+    st.stop()
 
 
 # ---------- PREPROCESSING FUNCTION (same as training) ----------
@@ -46,7 +66,8 @@ st.markdown("Predict whether a patient will **not show up** for their scheduled 
 
 # Sidebar for input method
 st.sidebar.header("Choose input method")
-method = st.sidebar.radio("", ["Single patient (form)", "Upload CSV file"])
+# provide a non-empty label but keep it hidden for layout/accessibility
+method = st.sidebar.radio("Input method", ["Single patient (form)", "Upload CSV file"], label_visibility="collapsed")
 
 # ------- Single patient form -------
 if method == "Single patient (form)":
