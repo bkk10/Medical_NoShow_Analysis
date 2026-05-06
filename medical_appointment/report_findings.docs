@@ -4,7 +4,7 @@ Medical Appointment No‑Show Prediction – Summary Report
 What We Wanted to Do
 We built a computer model that predicts, before each appointment, whether the patient will actually show up. The goal is to help you reduce wasted time and money from empty slots.
 
-How the Model Works Very Simply
+How the Model Works 
 Think of it like a weather forecast for appointments. The model looks at past patient data (age, how long they waited for the appointment, whether they got an SMS reminder, their neighbourhood, etc.) and learns patterns. Then it makes a prediction: "This patient will likely show" or "This patient will likely not show".
 
 What We Found
