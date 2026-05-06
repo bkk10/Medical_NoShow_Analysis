@@ -1,0 +1,40 @@
+Medical Appointment No‑Show Prediction – Summary Report
+To: Clinic Management
+From: Data Team
+Date: [Current Date]
+
+What We Wanted to Do
+We built a computer model that predicts, before each appointment, whether the patient will actually show up. The goal is to help you reduce wasted time and money from empty slots.
+
+How the Model Works (Very Simply)
+Think of it like a weather forecast for appointments. The model looks at past patient data (age, how long they waited for the appointment, whether they got an SMS reminder, their neighbourhood, etc.) and learns patterns. Then it makes a prediction: "This patient will likely show" or "This patient will likely not show".
+
+What We Found
+We tested three different models and compared them. Here are the results in plain English:
+
+Model	How often it caught actual show‑ups	When it said "show", how often it was right
+Model A (Logistic Regression)	86% – caught 9 out of 10	Right 29% of the time (wrong 71%)
+Model B (Random Forest)	90% – caught 9 out of 10	Right 28% of the time (wrong 72%)
+Model C (XGBoost)	83% – caught 8 out of 10	Right 30% of the time (wrong 70%)
+What this means in real life:
+
+
+All three models are very good at finding patients who will actually show up (they catch 8‑9 out of every 10).
+
+However, they also cry wolf often – about 7 out of 10 times they say "show", the patient actually doesn't show. That means you might send a reminder to someone who wasn't going to come anyway.
+
+Which Model Should You Use?
+I recommend Model B (Random Forest) because it catches the most true show‑ups (90%). If your main problem is empty appointment slots, catching 90% of the people who will come is a big win.
+
+If you are worried about annoying patients with too many wrong reminders, you could use Model C – it gives slightly fewer false alarms, but also catches fewer true show‑ups. It's a trade‑off.
+
+What This Means for the Clinic
+Good news:
+You can identify 9 out of 10 patients who will actually show up before they arrive.
+
+You can send a simple SMS reminder to those 9 people, which might increase attendance even more.
+
+The cost:
+For every 10 patients the model says "will show", 7 will actually no‑show. That means you will send about 7 unnecessary SMS messages for every 3 that are correct.
+
+If an SMS costs next to nothing, that's fine. If false alarms cause other problems (like overbooking), you might want to adjust.
